@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env
+.env.*
+!.env.example
+# postinstall 会把 wasm 写成 public/typst/compiler 文件；
+# 本机若曾把同名路径做成目录，带进构建上下文会让 COPY 失败
+public/typst

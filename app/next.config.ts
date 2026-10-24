@@ -1,5 +1,20 @@
 import type { NextConfig } from "next"
 
-const nextConfig: NextConfig = {}
+const isExport = process.env.NEXT_EXPORT !== "0"
+
+const nextConfig: NextConfig = {
+  output: isExport ? "export" : undefined,
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+          { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
+        ],
+      },
+    ]
+  },
+}
 
 export default nextConfig

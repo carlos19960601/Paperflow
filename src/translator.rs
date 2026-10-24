@@ -104,8 +104,16 @@ fn validate(template: &TemplateDocument) -> Result<(), TranslationError> {
     ) {
         return Err(TranslationError::InvalidFontFamily);
     }
-    validate_chrome(&template.page.header.left, &template.page.header.center, &template.page.header.right)?;
-    validate_chrome(&template.page.footer.left, &template.page.footer.center, &template.page.footer.right)?;
+    validate_chrome(
+        &template.page.header.left,
+        &template.page.header.center,
+        &template.page.header.right,
+    )?;
+    validate_chrome(
+        &template.page.footer.left,
+        &template.page.footer.center,
+        &template.page.footer.right,
+    )?;
     if !template.page.header.logo_src.is_empty() {
         decode_image(&template.page.header.logo_src)?;
     }
@@ -300,13 +308,7 @@ fn emit_header(
 fn emit_footer(footer: &PageFooter, variables: &HashMap<String, Value>) -> String {
     wrap_chrome(
         footer.show_on_first_page,
-        emit_chrome_grid(
-            &footer.left,
-            &footer.center,
-            &footer.right,
-            None,
-            variables,
-        ),
+        emit_chrome_grid(&footer.left, &footer.center, &footer.right, None, variables),
     )
 }
 
@@ -462,12 +464,8 @@ fn emit_block(
                 with_align(attrs.text_align.as_deref(), body)
             }
         }
-        BlockNode::BulletList { content } => {
-            emit_list(content, false, context, depth + 1)?
-        }
-        BlockNode::OrderedList { content } => {
-            emit_list(content, true, context, depth + 1)?
-        }
+        BlockNode::BulletList { content } => emit_list(content, false, context, depth + 1)?,
+        BlockNode::OrderedList { content } => emit_list(content, true, context, depth + 1)?,
         BlockNode::Table { attrs } => table_expr(&attrs.headers, &attrs.rows),
         BlockNode::HorizontalRule {} => {
             "#line(length: 100%, stroke: 0.6pt + rgb(\"cbd5e1\"))".into()
@@ -643,9 +641,7 @@ fn display_value(value: &Value) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::{
-        EditorDoc, InlineNode, PageSettings, TemplateDocument, VariableAttrs,
-    };
+    use crate::schema::{EditorDoc, InlineNode, PageSettings, TemplateDocument, VariableAttrs};
 
     #[test]
     fn escapes_variable_values_as_typst_strings() {
@@ -814,11 +810,19 @@ mod tests {
         page.footer.right = r#"机密 "文件""#.into();
 
         let result = translate(&empty_template(page), &HashMap::new(), "Hiragino Sans GB").unwrap();
-        assert!(result.source.contains("margin: (x: 18mm, top: 18mm, bottom: 30mm)"));
+        assert!(
+            result
+                .source
+                .contains("margin: (x: 18mm, top: 18mm, bottom: 30mm)")
+        );
         assert!(result.source.contains("footer:"));
         assert!(result.source.contains(r#"#text("第 ")"#));
         assert!(result.source.contains("#context counter(page).display()"));
-        assert!(result.source.contains("#context [#counter(page).final().first()]"));
+        assert!(
+            result
+                .source
+                .contains("#context [#counter(page).final().first()]")
+        );
         assert!(result.source.contains(r##"text("机密 \"文件\"")"##));
     }
 
@@ -832,8 +836,16 @@ mod tests {
         let variables =
             HashMap::from([("customer".into(), Value::String("ACME \"#panic()\"".into()))]);
         let result = translate(&empty_template(page), &variables, "Hiragino Sans GB").unwrap();
-        assert!(result.source.contains("margin: (x: 18mm, top: 30mm, bottom: 18mm)"));
-        assert!(result.source.contains("if counter(page).get().first() == 1 { none }"));
+        assert!(
+            result
+                .source
+                .contains("margin: (x: 18mm, top: 30mm, bottom: 18mm)")
+        );
+        assert!(
+            result
+                .source
+                .contains("if counter(page).get().first() == 1 { none }")
+        );
         assert!(result.source.contains(r##"text("ACME \"#panic()\"")"##));
     }
 
@@ -843,8 +855,12 @@ mod tests {
         page.background.kind = "color".into();
         page.background.color = "#F8FAFC".into();
 
-        let color = translate(&empty_template(page.clone()), &HashMap::new(), "Hiragino Sans GB")
-            .unwrap();
+        let color = translate(
+            &empty_template(page.clone()),
+            &HashMap::new(),
+            "Hiragino Sans GB",
+        )
+        .unwrap();
         assert!(color.source.contains(r#"fill: rgb("f8fafc")"#));
 
         page.background.kind = "watermark".into();

@@ -1,5 +1,5 @@
-import { TemplateEditor } from "@/components/template-editor"
+import { StudioApp } from "@/components/studio/studio-app"
 
 export default function Page() {
-  return <TemplateEditor />
+  return <StudioApp />
 }

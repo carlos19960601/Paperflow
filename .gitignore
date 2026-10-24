@@ -1,1 +1,6 @@
 /target
+/data
+.env
+.pi/
+.sc
+node_modules/

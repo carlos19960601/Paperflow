@@ -15,6 +15,9 @@
 /.next/
 /out/
 
+# generated wasm
+/public/typst/
+
 # production
 /build
 

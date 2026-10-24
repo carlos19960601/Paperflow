@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: build
+    ports:
+      - "4000:4000"
+    volumes:
+      # 模板与图片写在宿主机 ./data，容器重建后仍然保留
+      - ~/data/paperflow:/data
+      # 字体目录：挂载宿主机的 fonts/，供后端 /api/fonts 与 /fonts/{file} 使用
+      - ./fonts:/fonts:ro
+    restart: unless-stopped
+    # 默认值可在项目根目录 .env 中覆盖
+    environment:
+      RUST_LOG: ${RUST_LOG:-paperflow=info,tower_http=info}
+      PAPERFLOW_DATA_DIR: ${PAPERFLOW_DATA_DIR:-/data}
+      # 指定容器内字体目录路径（与上面的挂载点对应）
+      PAPERFLOW_FONTS_DIR: ${PAPERFLOW_FONTS_DIR:-/fonts}
+
+  frontend:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    pull_policy: build
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+    # 默认值可在项目根目录 .env 中覆盖
+    environment:
+      # 运行时注入：Next.js 服务端 layout 读取此变量写入页面
+      # 前端 window.__BACKEND_URL__ 优先使用此值
+      # 使用宿主机可达地址（浏览器直接调用 API，无法解析 Docker 内部服务名）
+      BACKEND_URL: ${BACKEND_URL:-http://localhost:4000/api}
+      # 与服务端构建产物（.next/）保持一致，避免 next start 误判为静态导出
+      NEXT_EXPORT: ${NEXT_EXPORT:-0}
