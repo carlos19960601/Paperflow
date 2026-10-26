@@ -3,10 +3,7 @@
 import { useMemo, useState } from "react"
 import {
   Check,
-  Code2,
   Copy,
-  Download,
-  Loader2,
   Plus,
   RotateCcw,
   SlidersHorizontal,
@@ -244,7 +241,6 @@ type VariablesPanelProps = {
   templatePath: string
   inputs: TypstInput[]
   values: Record<string, TypstInputValue>
-  dirty: boolean
   onChangeValue: (name: string, next: TypstInputValue) => void
   onResetDefaults: () => void
   onInsertSampleInput: () => void
@@ -255,7 +251,6 @@ export function VariablesPanel({
   templatePath,
   inputs,
   values,
-  dirty: _dirty,
   onChangeValue,
   onResetDefaults,
   onInsertSampleInput,
