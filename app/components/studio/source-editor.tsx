@@ -309,17 +309,15 @@ export const SourceEditor = forwardRef<SourceEditorHandle, SourceEditorProps>(
               borderLeft: "1px solid var(--warning)",
             },
             ".cm-lintRange-error": {
-              backgroundImage:
-                "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"6\" height=\"3\">%3Cpath d=\"M0 2.5 L2 0.5 L4 2.5 L6 0.5\" stroke=\"%23b5231c\" fill=\"none\" stroke-width=\"0.85\"/></svg>')",
-              backgroundPosition: "left bottom",
-              backgroundRepeat: "repeat-x",
+              textDecoration: "underline wavy var(--destructive)",
+              textDecorationSkipInk: "none",
+              textDecorationThickness: "0.85px",
               paddingBottom: "2px",
             },
             ".cm-lintRange-warning": {
-              backgroundImage:
-                "url('data:image/svg+xml,<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"6\" height=\"3\">%3Cpath d=\"M0 2.5 L2 0.5 L4 2.5 L6 0.5\" stroke=\"%238f5300\" fill=\"none\" stroke-width=\"0.85\"/></svg>')",
-              backgroundPosition: "left bottom",
-              backgroundRepeat: "repeat-x",
+              textDecoration: "underline wavy var(--warning)",
+              textDecorationSkipInk: "none",
+              textDecorationThickness: "0.85px",
               paddingBottom: "2px",
             },
             ".cm-lintRange-active": {
