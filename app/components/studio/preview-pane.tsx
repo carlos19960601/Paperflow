@@ -32,8 +32,6 @@ type PreviewPaneProps = {
   diagnostics: TypstDiagnostic[]
   note?: string | null
   exportPhase: ExportPhase
-  exportError: string | null
-  dirty: boolean
   inputs: TypstInput[]
   inputValues: Record<string, TypstInputValue>
   variablesOpen: boolean
@@ -41,7 +39,6 @@ type PreviewPaneProps = {
   onChangeInputValue: (name: string, next: TypstInputValue) => void
   onResetInputDefaults: () => void
   onInsertSampleInput: () => void
-  onExportWithCurrentInputs: () => void
   onJumpToDiagnostic: (item: TypstDiagnostic) => void
 }
 
@@ -54,8 +51,6 @@ export function PreviewPane({
   diagnostics,
   note,
   exportPhase,
-  exportError,
-  dirty,
   inputs,
   inputValues,
   variablesOpen,
@@ -63,7 +58,6 @@ export function PreviewPane({
   onChangeInputValue,
   onResetInputDefaults,
   onInsertSampleInput,
-  onExportWithCurrentInputs,
   onJumpToDiagnostic,
 }: PreviewPaneProps) {
   const [zoom, setZoom] = useState(100)
@@ -423,7 +417,6 @@ export function PreviewPane({
               templatePath={templatePath}
               inputs={inputs}
               values={inputValues}
-              dirty={dirty}
               onChangeValue={onChangeInputValue}
               onResetDefaults={onResetInputDefaults}
               onInsertSampleInput={onInsertSampleInput}

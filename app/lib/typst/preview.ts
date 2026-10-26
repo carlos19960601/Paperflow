@@ -348,13 +348,64 @@ function rewriteSvgReferences(
   return next
 }
 
+// 允许的 URL 协议：常规网络协议、站内相对/绝对路径、以及内嵌图片数据。
+const ALLOWED_URL_PROTOCOLS = /^(https?|mailto|tel):/i
+const ALLOWED_IMAGE_DATA = /^data:image\/(png|jpe?g|gif|webp|svg\+xml|avif);/i
+
+function isSafeUrl(value: string): boolean {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return true
+  }
+  if (ALLOWED_IMAGE_DATA.test(trimmed)) {
+    return true
+  }
+  const scheme = trimmed.match(/^([a-zA-Z][a-zA-Z0-9+.-]*):/)
+  if (!scheme) {
+    // 无协议：相对路径、以 / 开头的站内路径或 # 锚点
+    return true
+  }
+  return ALLOWED_URL_PROTOCOLS.test(`${scheme[1]}:`)
+}
+
 function stripUnsafe(root: Element) {
-  root.querySelectorAll("script").forEach((node) => node.remove())
+  // 危险容器：脚本、外联样式、可嵌套 HTML 的 foreignObject
+  root
+    .querySelectorAll("script, foreignObject")
+    .forEach((node) => node.remove())
+
+  // <style> 仅允许内部引用 url(#id)，移除任何外部资源引用
+  for (const style of root.querySelectorAll("style")) {
+    const text = style.textContent
+    if (!text) {
+      continue
+    }
+    const cleaned = text.replace(
+      /url\(\s*(['"]?)(?!#)([^'")]+)\1\s*\)/gi,
+      "none"
+    )
+    if (cleaned !== text) {
+      style.textContent = cleaned
+    }
+  }
+
   for (const element of [root, ...root.querySelectorAll("*")]) {
     for (const attr of [...element.attributes]) {
       const name = attr.name.toLowerCase()
-      const value = attr.value.trim().toLowerCase()
-      if (name.startsWith("on") || value.startsWith("javascript:")) {
+      const value = attr.value.trim()
+      const lower = value.toLowerCase()
+      if (name.startsWith("on")) {
+        element.removeAttribute(attr.name)
+        continue
+      }
+      if (
+        (name === "href" || name === "xlink:href" || name === "src") &&
+        !isSafeUrl(value)
+      ) {
+        element.removeAttribute(attr.name)
+        continue
+      }
+      if (lower.startsWith("javascript:") || lower.startsWith("vbscript:")) {
         element.removeAttribute(attr.name)
       }
     }

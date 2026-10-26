@@ -88,6 +88,10 @@
   --sidebar-accent-foreground: oklch(0.19 0.012 65);
   --sidebar-border: oklch(0.885 0.01 80);
   --sidebar-ring: oklch(0.47 0.175 28);
+
+  /* 看版台底槽与手稿编辑底色（纸质层级：暖白底槽 / 羊皮白手稿） */
+  --paper-well: #ebe6dc;
+  --editor-surface: #fcfbf8;
 }
 
 .dark {
@@ -126,6 +130,10 @@
   --sidebar-accent-foreground: oklch(0.95 0.006 85);
   --sidebar-border: oklch(0.27 0.01 65);
   --sidebar-ring: oklch(0.62 0.17 28);
+
+  /* 暗房：底槽沉为近黑，手稿底色沉为深炭 */
+  --paper-well: #0d0c0a;
+  --editor-surface: #151310;
 }
 
 @layer base {
@@ -178,10 +186,7 @@
 
 /* 看版台底槽：衬托白纸边缘 */
 .bg-paper-well {
-  background-color: #ebe6dc;
-}
-.dark .bg-paper-well {
-  background-color: #0d0c0a;
+  background-color: var(--paper-well);
 }
 
 /* 所见即所得铁律：真实排出的 PDF 纸面在明暗主题下始终为纯白纸张 */
@@ -196,10 +201,7 @@
 
 /* 手稿源码编辑底色 */
 .bg-editor {
-  background-color: #fcfbf8;
-}
-.dark .bg-editor {
-  background-color: #151310;
+  background-color: var(--editor-surface);
 }
 
 @keyframes paperEntrance {
