@@ -190,6 +190,7 @@ async fn main() {
                 .delete(images_api::delete_image),
         )
         .route("/api/images/content", get(images_api::get_image_content))
+        .route("/api/images/rename", post(images_api::rename_image))
         .layer(DefaultBodyLimit::max(16 * 1024 * 1024)) // 16MB
         .layer(
             CorsLayer::new()

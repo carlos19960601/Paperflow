@@ -35,6 +35,15 @@ pub struct ImageDeleteQuery {
     pub name: String,
 }
 
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RenameImageReq {
+    #[serde(default)]
+    pub path: String,
+    pub name: String,
+    pub new_name: String,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TypstImage {
@@ -253,4 +262,160 @@ pub async fn delete_image(
     })?;
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+/// POST /api/images/rename
+/// 重命名图片（仅修改文件名主干，保留原扩展名）
+pub async fn rename_image(
+    state: State<AppState>,
+    Json(req): Json<RenameImageReq>,
+) -> Result<Json<TypstImage>, ApiError> {
+    let api_path = files::clean_path(&req.path)?;
+    let old_name = valid_image_name(&req.name)?;
+
+    // 保留原扩展名，仅允许修改主干
+    let extension = old_name.rsplit_once('.').map(|(_, ext)| ext);
+    let new_stem = valid_image_name(&req.new_name)?;
+    let new_name = match extension {
+        Some(ext) if !ext.is_empty() => format!("{new_stem}.{ext}"),
+        _ => new_stem.to_owned(),
+    };
+
+    let dir = image_dir(&state.images_root, &api_path);
+    let old_path = dir.join(old_name);
+    if !old_path.is_file() {
+        return Err(ApiError::not_found("图片不存在"));
+    }
+
+    let new_path = dir.join(&new_name);
+    if new_name != old_name && new_path.exists() {
+        return Err(ApiError::conflict("目标名称已存在"));
+    }
+
+    std::fs::rename(&old_path, &new_path).map_err(|e| {
+        error!(
+            "重命名图片失败 {} -> {}: {e}",
+            old_path.display(),
+            new_path.display()
+        );
+        ApiError::internal("重命名图片失败")
+    })?;
+
+    let bytes = std::fs::read(&new_path).map_err(|e| {
+        error!("读取图片失败 {}: {e}", new_path.display());
+        ApiError::internal("读取图片失败")
+    })?;
+    let mut hasher = Sha256::new();
+    hasher.update(&bytes);
+    let sha256 = format!("{:x}", hasher.finalize());
+    let content_type = detect_content_type(&new_name).into();
+
+    Ok(Json(TypstImage {
+        name: new_name,
+        size: bytes.len() as u64,
+        content_type,
+        sha256,
+    }))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{FontFamilies, FontList};
+    use std::sync::Arc;
+
+    fn test_state(root: &std::path::Path) -> AppState {
+        AppState {
+            environment: Arc::new(typst_embed::RenderEnvironment::builder().build().unwrap()),
+            font_families: Arc::new(FontFamilies {
+                sans: "Arial".into(),
+                serif: "Times New Roman".into(),
+                mono: "Arial".into(),
+            }),
+            font_list: Arc::new(FontList {
+                files: Vec::new(),
+                families: Vec::new(),
+                weights: std::collections::HashMap::new(),
+            }),
+            fonts_dir: Arc::new(root.join("fonts")),
+            typst_root: Arc::new(root.join("typst")),
+            images_root: Arc::new(root.join("images")),
+            packages_dir: Arc::new(root.join("packages")),
+        }
+    }
+
+    fn write_image(images_root: &std::path::Path, path: &str, name: &str) {
+        let dir = images_root.join(path);
+        std::fs::create_dir_all(&dir).unwrap();
+        std::fs::write(dir.join(name), b"fake-image-bytes").unwrap();
+    }
+
+    #[tokio::test]
+    async fn renames_image_and_preserves_extension() {
+        let root =
+            std::env::temp_dir().join(format!("paperflow-img-rename-{}", std::process::id()));
+        let state = test_state(&root);
+        write_image(&state.images_root, "demo", "logo.png");
+
+        let result = rename_image(
+            State(state),
+            Json(RenameImageReq {
+                path: "demo".into(),
+                name: "logo.png".into(),
+                new_name: "icon".into(),
+            }),
+        )
+        .await
+        .expect("rename image");
+
+        assert_eq!(result.name, "icon.png");
+        assert!(root.join("images/demo/icon.png").is_file());
+        assert!(!root.join("images/demo/logo.png").exists());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[tokio::test]
+    async fn rejects_invalid_new_name() {
+        let root =
+            std::env::temp_dir().join(format!("paperflow-img-rename-invalid-{}", std::process::id()));
+        let state = test_state(&root);
+        write_image(&state.images_root, "demo", "logo.png");
+
+        let result = rename_image(
+            State(state),
+            Json(RenameImageReq {
+                path: "demo".into(),
+                name: "logo.png".into(),
+                new_name: "../evil".into(),
+            }),
+        )
+        .await;
+
+        assert!(matches!(result, Err(ref e) if e.status == StatusCode::BAD_REQUEST));
+        assert!(root.join("images/demo/logo.png").is_file());
+        let _ = std::fs::remove_dir_all(root);
+    }
+
+    #[tokio::test]
+    async fn rejects_conflicting_new_name() {
+        let root =
+            std::env::temp_dir().join(format!("paperflow-img-rename-conflict-{}", std::process::id()));
+        let state = test_state(&root);
+        write_image(&state.images_root, "demo", "logo.png");
+        write_image(&state.images_root, "demo", "icon.png");
+
+        let result = rename_image(
+            State(state),
+            Json(RenameImageReq {
+                path: "demo".into(),
+                name: "logo.png".into(),
+                new_name: "icon".into(),
+            }),
+        )
+        .await;
+
+        assert!(matches!(result, Err(ref e) if e.status == StatusCode::CONFLICT));
+        assert!(root.join("images/demo/logo.png").is_file());
+        let _ = std::fs::remove_dir_all(root);
+    }
 }

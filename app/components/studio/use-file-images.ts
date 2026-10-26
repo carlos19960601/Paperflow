@@ -5,6 +5,7 @@ import {
   deleteImage,
   getImageContent,
   listImages,
+  renameImage,
   uploadImage,
 } from "@/lib/api/images"
 
@@ -18,6 +19,7 @@ export type LoadedImage = {
 export type ImagePending =
   | { kind: "upload"; done: number; total: number }
   | { kind: "delete"; name: string }
+  | { kind: "rename"; name: string }
   | null
 
 type Phase = "idle" | "loading" | "ready" | "error"
@@ -113,5 +115,33 @@ export function useFileImages(path: string) {
     }
   }
 
-  return { images, phase, error, busy, pending, upload, remove }
+  async function rename(name: string, newStem: string) {
+    if (!path) return
+    setBusy(true); setPending({ kind: "rename", name }); setError(null)
+    try {
+      const saved = await renameImage(path, name, newStem)
+      setImages((current) => {
+        const next = current.map((image) =>
+          image.name === name
+            ? {
+                name: saved.name,
+                sha256: saved.sha256,
+                contentType: saved.contentType,
+                bytes: image.bytes,
+              }
+            : image
+        )
+        next.sort((a, b) => a.name.localeCompare(b.name, "zh-CN"))
+        return next
+      })
+      return saved
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : "重命名图片失败")
+      throw reason
+    } finally {
+      setBusy(false); setPending(null)
+    }
+  }
+
+  return { images, phase, error, busy, pending, upload, remove, rename }
 }
