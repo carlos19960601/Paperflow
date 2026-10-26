@@ -3,4 +3,5 @@
 .env
 .pi/
 .sc
+.impeccable/
 node_modules/

@@ -27,11 +27,11 @@
 
 | 功能场景 | 界面截图 |
 | :--- | :--- |
-| **实时校样工作台**<br>· 左侧多级模板文件树<br>· 中央 CodeMirror 语法高亮与格式化<br>· 右侧 WASM 毫秒级纯白矢量纸面预览 | <img src="./docs/screenshots/workbench-overview.png" alt="工作台全景" width="100%" /> |
-| **动态变量调试抽屉**<br>· 自动识别源码中的 `sys.inputs`<br>· 支持数值、字符串与复杂 JSON 字典/数组<br>· 参数修改即时重绘，保存在本地浏览器 | <img src="./docs/screenshots/variables-panel.png" alt="变量调试面板" width="100%" /> |
-| **API 契约一键复制**<br>· 生产环境 `POST /api/pdf` 接口映射<br>· 一键复制与当前参数一致的 cURL / JSON 载荷<br>· 研发与排版人员契约完全对齐 | <img src="./docs/screenshots/api-contract.png" alt="API 契约" width="100%" /> |
+| **实时校样工作台**<br>· 左侧多级模板文件树与快速操作<br>· 中央 CodeMirror 语法高亮、折叠与格式化<br>· 右侧 WASM 毫秒级纯白矢量纸面预览与自由缩放 | <img src="./docs/screenshots/workbench-overview.png" alt="工作台全景" width="100%" /> |
+| **模板变量调试抽屉**<br>· 自动识别源码中的 `sys.inputs`<br>· 支持数值、字符串与复杂 JSON 字典/数组<br>· 参数修改即时重绘，右上角直出一键复制 cURL 契约 | <img src="./docs/screenshots/variables-panel.png" alt="模板变量调试面板" width="100%" /> |
+| **开发指引与 API 契约**<br>· 生产环境 `POST /api/pdf` 接口规范映射<br>· 动态变量 `sys.inputs` 声明规范与 JSON 映射说明<br>· 内置 Typst 官方语法参考直达，研发排版契约对齐 | <img src="./docs/screenshots/api-contract.png" alt="开发指引与 API 契约" width="100%" /> |
 | **暗房深色主题 (Dark Mode)**<br>· 按 `D` 键快速切换暗色工作台<br>· 严格遵循 **纯白校样铁律**，纸面不反相染灰<br>· 降低长时间模板调试视觉疲劳 | <img src="./docs/screenshots/dark-mode.png" alt="暗色模式" width="100%" /> |
-| **快捷键与开发指南弹窗**<br>· 常用快捷键速查 (`⌘S` / `⌥⇧F` / `⌘I` / `⌘B`)<br>· 动态变量与 HTTP API 调用代码片段<br>· 常用中文排版设置与图片引入示例 | <img src="./docs/screenshots/shortcuts-guide.png" alt="开发指引" width="100%" /> |
+| **快捷键与常用排版代码片段**<br>· 核心键盘快捷键速查 (`⌘S` / `⌥⇧F` / `⌘I` / `⌘B`)<br>· 常用排版代码片段（双栏信头、结构化表格、动态页码）<br>· 工作台高效排印贴士，支持一键复制代码 | <img src="./docs/screenshots/shortcuts-guide.png" alt="快捷键与开发指引" width="100%" /> |
 
 ---
 
@@ -60,10 +60,11 @@
 - 🧩 **动态变量即 API 契约**
   - 自动识别模板源码中的 `sys.inputs.at(...)` 变量声明。
   - 深度支持原生 JSON 映射：标量自动转换、JSON Object 直转 Typst 字典（Dictionary）、JSON Array 直转 Typst 数组。
-  - 提供交互式「测试变量」面板，修改参数即时重排，并一键生成对应的 `curl` / `JSON` 请求示例。
+  - 提供交互式「模板变量」抽屉，修改参数即时重排并持久化保存，抽屉右上角支持一键生成与复制对应的真实 `cURL` 请求命令。
 - 🎨 **“活字排印校样台” 专业质感**
   - 严谨的排印工作台美学（暖白道林纸、亚麻书脊与铅字浓墨色阶，朱砂印泥单点聚焦交付）。
   - **纯白校样铁律**：无论在日间还是暗房深色模式下，排出的文档纸张始终维持纯白底色与真实物理投影，杜绝色彩失真。
+  - **自由视口缩放**：右侧预览工具栏支持 50% ~ 200% 自由放缩与一键重置，从容应对整版校样与微观字体排印细节检视。
 - 🀄 **开箱即用中文字体支持**
   - 内置精选商用友好中英文字体（微软雅黑、宋体、Maple Mono 等宽中文编程字体、Roboto、Arial 等）。
   - 后端自动扫描字库并为前端 WASM 提供按需字体下发，彻底告别中文排版乱码或缺字方块。
@@ -383,10 +384,10 @@ Paperflow 后端会自动处理 JSON 类型转换，**无需手动执行繁琐�
 
 | 快捷键 (Mac) | 快捷键 (Windows/Linux) | 动作 |
 | :--- | :--- | :--- |
-| `⌘ + S` | `Ctrl + S` | 保存当前模板文件 |
+| `⌘ + S` | `Ctrl + S` | 保存当前模板文件并即时排版 |
 | `⌥ + ⇧ + F` | `Shift + Alt + F` | 格式化当前 Typst 源码 (Typstyle) |
-| `⌘ + I` | `Ctrl + I` | 展开 / 收起「变量与 API」抽屉 |
-| `⌘ + B` | `Ctrl + B` | 展开 / 收起左侧文件目录栏 |
+| `⌘ + I` | `Ctrl + I` | 展开 / 收起「模板变量」抽屉 |
+| `⌘ + B` | `Ctrl + B` | 展开 / 收起左侧文件树栏 |
 | `D` | `D` | 切换深色（暗房看版）/ 浅色（道林暖白）主题 |
 | `Ctrl + Space` | `Ctrl + Space` | 触发代码自动补全 |
 
