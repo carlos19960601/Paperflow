@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
   X,
   Keyboard,
@@ -24,6 +24,46 @@ type TabKey = "shortcuts" | "snippets" | "guide"
 export function HelpDialog({ onClose }: HelpDialogProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("shortcuts")
   const [copiedKey, setCopiedKey] = useState<string | null>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null)
+
+  // 打开时记录触发元素并把焦点移入弹窗；卸载时把焦点还给触发元素
+  useEffect(() => {
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null
+    dialogRef.current?.focus()
+    return () => {
+      previouslyFocusedRef.current?.focus()
+    }
+  }, [])
+
+  // 全局 Esc 关闭 + Tab 焦点陷阱（仅在弹窗打开期间生效）
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        onClose()
+        return
+      }
+      if (event.key !== "Tab") return
+      const dialog = dialogRef.current
+      if (!dialog) return
+      const focusables = dialog.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => document.removeEventListener("keydown", onKeyDown)
+  }, [onClose])
 
   async function handleCopy(key: string, text: string) {
     try {
@@ -43,18 +83,13 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
       onClick={onClose}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby="help-dialog-title"
-        className="modal-card-animate flex max-h-[min(92vh,720px)] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-2xl"
+        tabIndex={-1}
+        className="modal-card-animate flex max-h-[min(92vh,720px)] w-full max-w-4xl flex-col overflow-hidden rounded-xl border border-border bg-card text-card-foreground shadow-2xl outline-none"
         onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => {
-          if (e.key === "Escape") {
-            e.preventDefault()
-            e.stopPropagation()
-            onClose()
-          }
-        }}
       >
         {/* 固定顶栏 Header */}
         <div className="flex items-center justify-between border-b border-border/70 px-5 py-3">
