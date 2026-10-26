@@ -39,3 +39,10 @@ export function deleteImage(path: string, name: string) {
     { method: "DELETE" }
   )
 }
+
+export function renameImage(path: string, name: string, newName: string) {
+  return apiRequest<TypstImage>("/images/rename", {
+    method: "POST",
+    body: JSON.stringify({ path, name, newName }),
+  })
+}

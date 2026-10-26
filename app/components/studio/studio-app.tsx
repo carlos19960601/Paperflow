@@ -86,6 +86,26 @@ import { cn } from "@/lib/utils"
 const autosaveDelay = 1000
 const retryDelay = 4000
 
+// 统计当前模板源码中对某张图片的引用次数（精确匹配带引号的 /assets/ 路径，避免同名子串误报）
+function countImageReferences(content: string, name: string) {
+  if (!content || !name) return 0
+  const needle = `"/assets/${name}"`
+  let count = 0
+  let index = content.indexOf(needle)
+  while (index !== -1) {
+    count += 1
+    index = content.indexOf(needle, index + needle.length)
+  }
+  return count
+}
+
+// 重命名后把当前模板源码中的 /assets/旧名 引用替换为 /assets/新名
+function replaceImageReferences(content: string, oldName: string, newName: string) {
+  const needle = `"/assets/${oldName}"`
+  const replacement = `"/assets/${newName}"`
+  return content.split(needle).join(replacement)
+}
+
 type Draft = {
   id: number | null
   path: string
@@ -242,6 +262,13 @@ export function StudioApp() {
   const imageKey = loadedImages
     .map((image) => `${image.name}:${image.sha256}`)
     .join("|")
+  const imageReferenceCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const image of loadedImages) {
+      counts[image.name] = countImageReferences(draft.content, image.name)
+    }
+    return counts
+  }, [draft.content, loadedImages])
 
   // 启动时加载字体数据（供编辑器补全和 WASM 预览共用）
   useEffect(() => {
@@ -386,6 +413,18 @@ export function StudioApp() {
 
   function insertImage(name: string) {
     editorRef.current?.insertAtCursor(`#image("/assets/${name}")`)
+  }
+
+  async function handleRenameImage(name: string, newStem: string) {
+    const saved = await fileImages.rename(name, newStem)
+    if (!saved || saved.name === name) return
+    const content = draftRef.current.content
+    const nextContent = replaceImageReferences(content, name, saved.name)
+    if (nextContent === content) return
+    const next = { ...draftRef.current, content: nextContent }
+    contentRef.current = nextContent
+    draftRef.current = next
+    setDraft(next)
   }
 
   function insertSampleInputSnippet() {
@@ -1242,8 +1281,10 @@ export function StudioApp() {
                       busy={fileImages.busy}
                       pending={fileImages.pending}
                       disabled={!draft.path}
+                      referenceCounts={imageReferenceCounts}
                       onUpload={fileImages.upload}
                       onDelete={fileImages.remove}
+                      onRename={handleRenameImage}
                       onInsert={insertImage}
                     />
                   </div>
