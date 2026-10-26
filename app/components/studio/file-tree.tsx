@@ -489,7 +489,8 @@ function TreeRow({
         type="button"
         className={cn(
           "flex min-w-0 flex-1 items-center gap-1.5 py-1.5 text-left text-[13px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
-          (current || pinned) && "pr-12"
+          (current || pinned) && "pr-12",
+          "pointer-coarse:pr-12 pointer-coarse:py-2"
         )}
         aria-expanded={open}
         aria-current={current ? "true" : undefined}
@@ -541,12 +542,12 @@ function TreeRow({
           "absolute right-1 flex items-center gap-0.5 rounded-md p-0.5 transition-all duration-150",
           current || pinned
             ? "pointer-events-auto bg-card/90 opacity-100 shadow-2xs"
-            : "pointer-events-none bg-card/95 opacity-0 shadow-2xs group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100"
+            : "pointer-events-none bg-card/95 opacity-0 shadow-2xs group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100"
         )}
       >
         <button
           type="button"
-          className="btn-pressable flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="btn-pressable flex size-6 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 pointer-coarse:size-10"
           title="重命名"
           aria-label={`重命名 ${label}`}
           onClick={(e) => {
@@ -554,11 +555,11 @@ function TreeRow({
             onRename()
           }}
         >
-          <Pencil className="size-3" />
+          <Pencil className="size-3 pointer-coarse:size-4" />
         </button>
         <button
           type="button"
-          className="btn-pressable flex size-5 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+          className="btn-pressable flex size-6 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 pointer-coarse:size-10"
           title="删除"
           aria-label={`删除 ${label}`}
           onClick={(e) => {
@@ -566,7 +567,7 @@ function TreeRow({
             onDelete()
           }}
         >
-          <Trash2 className="size-3" />
+          <Trash2 className="size-3 pointer-coarse:size-4" />
         </button>
       </div>
     </div>

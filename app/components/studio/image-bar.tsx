@@ -209,13 +209,13 @@ function ImageThumb({
           type="button"
           aria-label={`删除 ${image.name}`}
           title="删除"
-          className="ml-1 flex size-5 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40"
+          className="ml-1 flex size-6 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40 pointer-coarse:size-10"
           onClick={(e) => {
             e.stopPropagation()
             onAskDelete()
           }}
         >
-          <Trash2 className="size-3" />
+          <Trash2 className="size-3 pointer-coarse:size-4" />
         </button>
       ) : null}
 
