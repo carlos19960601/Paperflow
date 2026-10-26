@@ -24,6 +24,7 @@ import {
   Moon,
   PanelLeftClose,
   PanelLeftOpen,
+  Pilcrow,
   Sparkles,
   Sun,
   Wand2,
@@ -821,21 +822,7 @@ export function StudioApp() {
 
           <div className="flex shrink-0 items-center gap-2">
             <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-2xs">
-              <svg
-                className="size-3.5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
+              <Pilcrow className="size-3.5" strokeWidth={2.4} aria-hidden="true" />
             </div>
             <span className="text-xs font-semibold tracking-tight text-foreground">
               Paperflow
@@ -883,7 +870,7 @@ export function StudioApp() {
             >
               <Sun
                 className={cn(
-                  "size-3.5 transition-all duration-200",
+                  "size-3.5 transition-[transform,opacity] duration-200",
                   resolvedTheme === "dark"
                     ? "rotate-0 scale-100 opacity-100"
                     : "-rotate-90 scale-0 opacity-0 absolute"
@@ -891,7 +878,7 @@ export function StudioApp() {
               />
               <Moon
                 className={cn(
-                  "size-3.5 transition-all duration-200",
+                  "size-3.5 transition-[transform,opacity] duration-200",
                   resolvedTheme === "dark"
                     ? "rotate-90 scale-0 opacity-0 absolute"
                     : "rotate-0 scale-100 opacity-100"

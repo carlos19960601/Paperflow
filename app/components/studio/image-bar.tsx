@@ -196,7 +196,7 @@ function ImageThumb({
   const url = useObjectUrl(image.bytes, image.contentType, image.name)
   return (
     <div
-      className="group/thumb relative flex shrink-0 items-center rounded-md border border-border/80 bg-card p-1 shadow-2xs transition-all hover:border-foreground/30 hover:shadow-xs"
+      className="group/thumb relative flex shrink-0 items-center rounded-md border border-border/80 bg-card p-1 shadow-2xs transition-[border-color,box-shadow] hover:border-foreground/30 hover:shadow-xs"
       onMouseEnter={() => onPoint(true)}
       onMouseLeave={() => onPoint(false)}
       onFocus={() => onFocusChange(true)}
