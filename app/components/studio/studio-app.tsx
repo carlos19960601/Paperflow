@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  type KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -97,6 +98,9 @@ const emptyDraft: Draft = { id: null, path: "", name: "", content: "" }
 type PreviewPhase = "idle" | "loading" | "ready" | "error"
 type Pane = "files" | "source" | "preview"
 
+// 移动端切换条的固定顺序（用于方向键循环切换）
+const PANE_ORDER: Pane[] = ["files", "source", "preview"]
+
 function draftFrom(file: TypstFile): Draft {
   return {
     id: file.id,
@@ -119,6 +123,26 @@ export function StudioApp() {
   const [helpOpen, setHelpOpen] = useState(false)
   const [pane, setPane] = useState<Pane>("files")
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+
+  const paneTabRefs = useRef<Record<Pane, HTMLButtonElement | null>>({
+    files: null,
+    source: null,
+    preview: null,
+  })
+
+  // 移动端「文件/源码/预览」切换条：方向键循环切换并移动焦点（APG Tabs 模式）
+  const handlePaneTabKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, id: Pane) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return
+      event.preventDefault()
+      const idx = PANE_ORDER.indexOf(id)
+      const delta = event.key === "ArrowRight" ? 1 : -1
+      const next = PANE_ORDER[(idx + delta + PANE_ORDER.length) % PANE_ORDER.length]
+      setPane(next)
+      paneTabRefs.current[next]?.focus()
+    },
+    []
+  )
   const [draft, setDraft] = useState<Draft>(emptyDraft)
   const [saved, setSaved] = useState<Draft>(emptyDraft)
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
@@ -880,9 +904,15 @@ export function StudioApp() {
         {(["files", "source", "preview"] as const).map((id) => (
           <button
             key={id}
+            ref={(node) => {
+              paneTabRefs.current[id] = node
+            }}
             type="button"
             role="tab"
+            id={`pane-tab-${id}`}
             aria-selected={pane === id}
+            aria-controls={`pane-${id}`}
+            tabIndex={pane === id ? 0 : -1}
             className={cn(
               "flex-1 text-xs font-medium transition-colors",
               pane === id
@@ -890,6 +920,7 @@ export function StudioApp() {
                 : "text-muted-foreground hover:text-foreground"
             )}
             onClick={() => setPane(id)}
+            onKeyDown={(event) => handlePaneTabKeyDown(event, id)}
           >
             {id === "files"
               ? "文件"
@@ -935,6 +966,9 @@ export function StudioApp() {
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
         {/* 左栏：文件树 */}
         <div
+          id="pane-files"
+          role="tabpanel"
+          aria-labelledby="pane-tab-files"
           style={{
             width: sidebarCollapsed ? 0 : `${layout.sidebarWidth}px`,
             flexBasis: sidebarCollapsed ? 0 : `${layout.sidebarWidth}px`,
@@ -1021,6 +1055,9 @@ export function StudioApp() {
         >
           {/* 中栏：源码编辑器 + 底部图片抽屉 */}
           <section
+            id="pane-source"
+            role="tabpanel"
+            aria-labelledby="pane-tab-source"
             style={{
               width: `${layout.editorRatio * 100}%`,
               flexBasis: `${layout.editorRatio * 100}%`,
@@ -1033,7 +1070,6 @@ export function StudioApp() {
               layout.resizing !== null && "pointer-events-none",
               pane !== "source" && "hidden lg:flex"
             )}
-            aria-label="源码"
           >
             {/* 编辑器顶部工具栏（统一 h-10 = 40px 对齐，去重文件名） */}
             <div className="flex h-10 shrink-0 items-center justify-between border-b border-border bg-background px-3">
@@ -1237,6 +1273,9 @@ export function StudioApp() {
 
           {/* 右栏：校样纸面预览 + 变量与 API 面板 */}
           <div
+            id="pane-preview"
+            role="tabpanel"
+            aria-labelledby="pane-tab-preview"
             className={cn(
               "h-full min-h-0 min-w-0 flex-1 overflow-hidden",
               layout.resizing !== null && "pointer-events-none select-none",
@@ -1257,8 +1296,6 @@ export function StudioApp() {
                   : "在左侧打开模板或点击「载入结算单示例」，此处将以纯白校样纸实时排出每一页。"
               }
               exportPhase={exportPhase}
-              exportError={exportError}
-              dirty={dirty}
               inputs={inputs}
               inputValues={effectiveInputValues}
               variablesOpen={variablesOpen}
@@ -1266,7 +1303,6 @@ export function StudioApp() {
               onChangeInputValue={handleChangeInputValue}
               onResetInputDefaults={handleResetInputDefaults}
               onInsertSampleInput={insertSampleInputSnippet}
-              onExportWithCurrentInputs={exportWithCurrentInputs}
               onJumpToDiagnostic={handleJumpToDiagnostic}
             />
           </div>
