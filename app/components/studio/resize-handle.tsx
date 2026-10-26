@@ -104,7 +104,7 @@ export function ResizeHandle({
       {/* 居中拖拽触点手柄（在 hover 或拖拽时柔和浮现） */}
       <div
         className={cn(
-          "pointer-events-none absolute top-1/2 -translate-y-1/2 z-40 rounded-full px-0.5 py-1.5 transition-all duration-150",
+          "pointer-events-none absolute top-1/2 -translate-y-1/2 z-40 rounded-full px-0.5 py-1.5 transition-[transform,opacity] duration-150",
           isResizing
             ? "scale-100 bg-primary/20 opacity-100"
             : "scale-90 opacity-0 group-hover/handle:scale-100 group-hover/handle:opacity-100"

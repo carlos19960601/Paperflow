@@ -12,6 +12,7 @@ import {
   Copy,
   Check,
   FileText,
+  Lightbulb,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
@@ -245,8 +246,9 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
 
               {/* 常用操作建议卡片 */}
               <div className="rounded-lg border border-border/80 bg-muted/20 p-3.5">
-                <h4 className="mb-1.5 font-semibold text-foreground">
-                  💡 工作台高效排印贴士
+                <h4 className="mb-1.5 flex items-center gap-1.5 font-semibold text-foreground">
+                  <Lightbulb className="size-3.5 shrink-0 text-warning" />
+                  <span>工作台高效排印贴士</span>
                 </h4>
                 <ul className="list-inside list-disc space-y-1.5 text-muted-foreground">
                   <li>
@@ -715,8 +717,11 @@ export function HelpDialog({ onClose }: HelpDialogProps) {
   }
 }`}
                   </pre>
-                  <p className="mt-1.5 text-[11px] text-muted-foreground">
-                    💡 提示：按 <code>⌘I</code> 打开「模板变量」即可实时调试数据，并一键复制对应的完整 cURL 请求命令。
+                  <p className="mt-1.5 flex items-start gap-1.5 text-[11px] text-muted-foreground">
+                    <Lightbulb className="mt-px size-3 shrink-0 text-warning" />
+                    <span>
+                      提示：按 <code>⌘I</code> 打开「模板变量」即可实时调试数据，并一键复制对应的完整 cURL 请求命令。
+                    </span>
                   </p>
                 </div>
               </div>

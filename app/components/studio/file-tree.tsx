@@ -539,7 +539,7 @@ function TreeRow({
       {/* 操作图标胶囊 */}
       <div
         className={cn(
-          "absolute right-1 flex items-center gap-0.5 rounded-md p-0.5 transition-all duration-150",
+          "absolute right-1 flex items-center gap-0.5 rounded-md p-0.5 transition-opacity duration-150",
           current || pinned
             ? "pointer-events-auto bg-card/90 opacity-100 shadow-2xs"
             : "pointer-events-none bg-card/95 opacity-0 shadow-2xs group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 pointer-coarse:pointer-events-auto pointer-coarse:opacity-100"
